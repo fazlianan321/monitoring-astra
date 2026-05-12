@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astra Motor Natar - Exclusive Tracking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --honda-red: #ED1C24; }
+        body { background-color: #f8f9fa; font-family: 'Poppins', sans-serif; }
+        
+        .navbar { background: white; border-bottom: 4px solid var(--honda-red); box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 10px 0; }
+        .logo-img { height: 60px; width: auto; transition: transform 0.3s ease; }
+        .logo-img:hover { transform: scale(1.05); }
+
+        .dealer-header { 
+            background: linear-gradient(rgba(0, 0, 0, 0.162), rgba(0, 0, 0, 0.308)), url("{{ url_for('static', filename='images/dealer.jpg') }}"); 
+            background-size: cover; background-position: center;
+            height: 250px; display: flex; align-items: flex-end; padding: 20px;
+        }
+
+        .card-premium { border: none; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); background: white; }
+        .greeting-text { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .welcome-back { font-weight: 700; color: #222; font-family: 'Montserrat'; }
+
+        .work-list { background: #fff8f8; border-radius: 15px; padding: 15px; margin-top: 15px; border: 1px dashed var(--honda-red); }
+        .work-item { font-size: 0.85rem; margin-bottom: 5px; color: #444; }
+        
+        .btn-honda { background: var(--honda-red); color: white; border-radius: 15px; padding: 15px; font-weight: 700; transition: 0.3s; width: 100%; border: none; }
+        .btn-honda:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(237, 28, 36, 0.3); color: white; }
+
+        .status-badge { background: #fef2f2; color: var(--honda-red); padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+
+        .rating-container { 
+            background: #fffdf2; border: 1px solid #ffeeba; border-radius: 15px; 
+            padding: 15px; margin-top: 15px; text-align: center; 
+        }
+        .star-rating { font-size: 2rem; color: #ddd; cursor: pointer; transition: 0.2s; }
+        .star-rating.active { color: #ffc107; }
+        .btn-rating { 
+            background: #28a745; color: white; border: none; padding: 12px 20px; 
+            border-radius: 15px; font-weight: 700; margin-top: 10px; display: none; 
+        }
+
+        /* Styling Tambahan untuk Carousel Promo */
+        .carousel-item img {
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            background-color: #ffffff;
+            border-radius: 20px;
+        }
+        .carousel-indicators [data-bs-target] {
+            background-color: var(--honda-red);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+        <img src="{{ url_for('static', filename='images/logo_honda.png') }}" class="logo-img">
+        <img src="{{ url_for('static', filename='images/logo_astra.png') }}" class="logo-img">
+    </div>
+</nav>
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-premium">
+                <div class="dealer-header">
+                    <span class="badge bg-danger rounded-pill"><i class="bi bi-patch-check-fill me-1"></i> Astra Motor Natar</span>
+                </div>
+
+                    <div class="p-4">
+                        <div id="initial-ui">
+                            <p id="greeting" class="greeting-text">Selamat Siang,</p>
+                            <h4 class="welcome-back mb-0">Customer Care Hub</h4>
+                            <div class="mb-3">
+                                <p class="small fw-bold text-danger mt-1 mb-4">Cek Service Kalian Sekarang</p>
+                                <div class="mb-3"></div>
+                                <label class="small fw-bold text-muted mb-2">NOMOR POLISI KENDARAAN</label>
+                                <input type="text" id="noPol" class="form-control form-control-lg text-center fw-bold shadow-none text-uppercase" placeholder="BE 1234 AB" style="border-radius: 15px; background: #f1f1f1; border: none;">
+                            </div>
+                            <button class="btn btn-honda" onclick="lacak()">CEK STATUS SERVICE</button>
+                        </div>
+
+                    <div id="hasil" class="d-none">
+                        <div class="text-center mb-3">
+                            <span class="status-badge" id="resStatus"></span>
+                        </div>
+                        <h5 class="fw-bold text-center mb-0">Halo, <span id="resNamaUser" class="text-danger"></span>!</h5>
+                        <p class="text-muted text-center small mb-3" id="resTipeUnit"></p>
+
+                        <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width: 0%"></div>
+                        </div>
+                        <p class="text-end fw-bold text-danger mb-4" id="resPersen" style="font-size: 0.9rem;"></p>
+
+                        <div class="row g-2">
+                            <div class="col-6 text-center">
+                                <div class="p-2 border rounded-4 bg-light">
+                                    <small class="text-muted d-block">Mekanik</small>
+                                    <span class="fw-bold small" id="resMekanik"></span>
+                                </div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div class="p-2 border rounded-4 bg-light">
+                                    <small class="text-muted d-block">Estimasi</small>
+                                    <span class="fw-bold text-danger small" id="resEstimasi"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="work-list">
+                            <h6 class="fw-bold mb-2 small"><i class="bi bi-tools me-2"></i>RINCIAN PEKERJAAN:</h6>
+                            <div id="rincianList"></div>
+                        </div>
+
+                        <div id="ratingSection" class="rating-container d-none">
+                            <div id="ratingPrompt">
+                                <h6 class="fw-bold mb-3">Service Selesai! Bagaimana kualitas layanan kami?</h6>
+                                <button class="btn btn-success w-100 py-3 mb-2" style="border-radius: 15px; font-weight: 700; background-color: #28a745; border: none;" onclick="bukaBintang()">
+                                    <i class="bi bi-star-fill me-2"></i>BERI PENILAIAN SEKARANG
+                                </button>
+                            </div>
+
+                            <div id="ratingStarsArea" style="display: none;">
+                                <h6 class="fw-bold mb-2 text-muted">Ketuk untuk memberi rating:</h6>
+                                <div class="d-flex justify-content-center gap-2 mb-3">
+                                    <i class="bi bi-star-fill star-rating" onclick="setRating(1)"></i>
+                                    <i class="bi bi-star-fill star-rating" onclick="setRating(2)"></i>
+                                    <i class="bi bi-star-fill star-rating" onclick="setRating(3)"></i>
+                                    <i class="bi bi-star-fill star-rating" onclick="setRating(4)"></i>
+                                    <i class="bi bi-star-fill star-rating" onclick="setRating(5)"></i>
+                                </div>
+
+                                <div class="mb-3 text-start">
+                                    <label class="small fw-bold text-muted mb-2">UNGGAH FOTO UNIT (OPSIONAL)</label>
+                                    <input type="file" id="inputFoto" class="form-control form-control-sm" accept="image/*" style="border-radius: 10px;">
+                                </div>
+
+                                <div class="mb-3 text-start">
+                                    <label class="small fw-bold text-muted mb-2">PESAN & KESAN (OPSIONAL)</label>
+                                    <textarea id="pesanRating" class="form-control shadow-none" rows="3" placeholder="Tulis masukan Anda di sini..." style="border-radius: 15px; font-size: 0.85rem; border: 1px solid #ddd;"></textarea>
+                                </div>
+
+                                <button id="btnKirimRating" class="btn-rating w-100" onclick="kirimRating()" style="background: var(--honda-red); display: none;">Kirim Penilaian</button>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-outline-secondary w-100 mt-4 border-0 small" onclick="location.reload()">Cek Plat Lain</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h6 class="fw-bold mb-3 small text-muted"><i class="bi bi-megaphone-fill me-2 text-danger"></i>PROMO & INFO TERKINI</h6>
+                <div id="promoCarousel" class="carousel slide shadow-sm" data-bs-ride="carousel" style="border-radius: 20px; overflow: hidden;">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="2"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active" data-bs-interval="3000">
+                            <img src="{{ url_for('static', filename='images/stylo.jpg') }}" class="d-block w-100" alt="Promo Astra Motor 1">
+                        </div>
+                        <div class="carousel-item" data-bs-interval="3000">
+                            <img src="{{ url_for('static', filename='images/promo.jpg') }}" class="d-block w-100" alt="Promo Astra Motor 2">
+                        </div>
+                        <div class="carousel-item" data-bs-interval="3000">
+                            <img src="{{ url_for('static', filename='images/oprasional.jpg') }}" class="d-block w-100" alt="Promo Astra Motor 3">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#promoCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#promoCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Greeting Logic
+    const hour = new Date().getHours();
+    let greet = hour < 11 ? "Selamat Pagi," : hour < 15 ? "Selamat Siang," : hour < 18 ? "Selamat Sore," : "Selamat Malam,";
+    document.getElementById('greeting').innerText = greet;
+
+    // --- FUNGSI RATING ---
+    
+    function bukaBintang() {
+        document.getElementById('ratingPrompt').style.display = 'none';
+        document.getElementById('ratingStarsArea').style.display = 'block';
+    }
+
+    let currentRating = 0;
+    function setRating(n) {
+        currentRating = n;
+        const stars = document.querySelectorAll('.star-rating');
+        stars.forEach((s, i) => s.classList.toggle('active', i < n));
+        document.getElementById('btnKirimRating').style.display = 'inline-block';
+    }
+
+    function kirimRating() {
+    if (currentRating === 0) return alert("Silakan pilih bintang terlebih dahulu!");
+    
+    // 1. Ambil No Polisi dari input yang sudah diisi customer tadi
+    const noPol = document.getElementById('noPol').value; 
+    const inputFoto = document.getElementById('inputFoto');
+    const pesanRating = document.getElementById('pesanRating').value;
+    
+    const fd = new FormData();
+    fd.append('rating', currentRating);
+    fd.append('pesan', pesanRating); 
+    // 2. Kirim No Polisi ke route /kirim-rating di app.py
+    fd.append('no_polisi', noPol); 
+    
+    if (inputFoto.files[0]) {
+        fd.append('foto', inputFoto.files[0]);
+    }
+
+    fetch('/kirim-rating', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if(res.success) {
+            alert("Terima kasih! " + res.message);
+            location.reload();
+        } else {
+            alert("Gagal mengirim: " + res.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Terjadi kesalahan koneksi.");
+    });
+}
+
+    // --- FUNGSI LACAK ---
+
+    function lacak() {
+        const noPol = document.getElementById('noPol').value;
+        if(!noPol) return alert("Masukkan plat nomor!");
+
+        let fd = new FormData();
+        fd.append('no_polisi', noPol);
+
+        fetch('/cek-status', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(res => {
+            if(res.success) {
+                document.getElementById('initial-ui').classList.add('d-none');
+                document.getElementById('hasil').classList.remove('d-none');
+                
+                document.getElementById('resNamaUser').innerText = res.data.nama;
+                document.getElementById('resTipeUnit').innerText = res.data.tipe;
+                document.getElementById('resStatus').innerText = res.data.status;
+                document.getElementById('resPersen').innerText = res.data.persen + '% Selesai';
+                document.getElementById('resMekanik').innerText = res.data.mekanik;
+                document.getElementById('resEstimasi').innerText = res.data.estimasi;
+                document.getElementById('progressBar').style.width = res.data.persen + '%';
+
+                let html = "";
+                res.data.rincian.forEach(item => {
+                    html += `<div class="work-item"><i class="bi bi-check2-circle text-success me-2"></i>${item}</div>`;
+                });
+                document.getElementById('rincianList').innerHTML = html;
+
+                if(res.data.persen === 100) {
+                    document.getElementById('ratingSection').classList.remove('d-none');
+                }
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+    // --- TAMBAHAN: AUTO REFRESH DATA ---
+    // Fungsi ini akan otomatis memperbarui data setiap 10 detik 
+    // jika customer sedang berada di halaman hasil tracking
+    setInterval(() => {
+        const hasilTampil = !document.getElementById('hasil').classList.contains('d-none');
+        const noPol = document.getElementById('noPol').value;
+
+        if (hasilTampil && noPol) {
+            let fd = new FormData();
+            fd.append('no_polisi', noPol);
+
+            fetch('/cek-status', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    // Update data tanpa menghilangkan animasi
+                    document.getElementById('resStatus').innerText = res.data.status;
+                    document.getElementById('resPersen').innerText = res.data.persen + '% Selesai';
+                    document.getElementById('resMekanik').innerText = res.data.mekanik;
+                    document.getElementById('resEstimasi').innerText = res.data.estimasi;
+                    document.getElementById('progressBar').style.width = res.data.persen + '%';
+
+                    let html = "";
+                    res.data.rincian.forEach(item => {
+                        html += `<div class="work-item"><i class="bi bi-check2-circle text-success me-2"></i>${item}</div>`;
+                    });
+                    document.getElementById('rincianList').innerHTML = html;
+
+                    // Jika tiba-tiba sudah 100%, munculkan rating
+                    if(res.data.persen === 100) {
+                        document.getElementById('ratingSection').classList.remove('d-none');
+                    }
+                }
+            });
+        }
+    }, 10000); // 10000 ms = 10 detik
+</script>
+</body>
+</html>

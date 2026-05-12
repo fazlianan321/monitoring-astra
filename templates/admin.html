@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Astra Motor Natar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; }
+        .navbar { background-color: #ED1C24; border-bottom: 5px solid #b31217; }
+        .card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .btn-danger { background-color: #ED1C24; border-radius: 12px; font-weight: 600; padding: 12px; border: none; }
+        .btn-danger:hover { background-color: #b31217; }
+        .form-label { font-weight: 600; color: #444; font-size: 0.85rem; text-transform: uppercase; }
+        .form-control, .form-select { border-radius: 10px; padding: 10px; border: 1px solid #dee2e6; background-color: #fdfdfd; }
+        .table-container { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .badge-plat { background-color: #333; color: white; padding: 5px 10px; border-radius: 8px; font-family: monospace; font-size: 1rem; }
+        #checklistArea { transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark mb-4 shadow-sm">
+    <div class="container text-center">
+        <span class="navbar-brand mb-0 h1 w-100"><i class="bi bi-speedometer2"></i> ASTRA MOTOR NATAR - MEKANIK DASHBOARD</span>
+    </div>
+</nav>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card p-4 sticky-top" style="top: 20px;">
+                <h5 class="fw-bold mb-4 text-danger"><i class="bi bi-pencil-square"></i> Update Progres Kendaraan</h5>
+                
+                <form id="adminForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nomor Polisi</label>
+                        <input type="text" id="no_polisi" class="form-control fw-bold" placeholder="BE 1234 AB" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Customer</label>
+                            <input type="text" id="nama_customer" class="form-control" placeholder="Nama">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Tipe Motor</label>
+                            <input type="text" id="tipe_motor" class="form-control" placeholder="Vario">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mekanik</label>
+                            <input type="text" id="mekanik" class="form-control" placeholder="Nama Mekanik" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Estimasi</label>
+                            <input type="text" id="estimasi" class="form-control" placeholder="15 Menit" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-primary">Daftar Pekerjaan (Checklist)</label>
+                        <div class="input-group mb-2">
+                            <input type="text" id="inputTugas" class="form-control" placeholder="Ketik tugas, lalu tambah">
+                            <button class="btn btn-primary" type="button" onclick="tambahTugas()">+ Tambah</button>
+                        </div>
+                        <div id="checklistArea" class="p-3 border rounded-3 bg-light mb-3" style="max-height: 180px; overflow-y: auto;">
+                            <p class="text-muted small mb-0 text-center" id="emptyMsg">Belum ada daftar tugas.</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-danger">Progress: <output id="outPersen">0</output>% (Otomatis)</label>
+                        <input type="range" class="form-range" id="persen" min="0" max="100" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status Pekerjaan</label>
+                        <select id="status" class="form-select">
+                            <option value="Antre">Antre</option>
+                            <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
+                            <option value="Pengecekan Akhir">Pengecekan Akhir</option>
+                            <option value="Selesai / Cuci Unit">Selesai / Cuci Unit</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Preview Rincian Kerja</label>
+                        <textarea id="rincian" class="form-control bg-light" rows="2" readonly placeholder="Otomatis terisi dari checklist"></textarea>
+                    </div>
+
+                    <button type="button" onclick="kirimData()" class="btn btn-danger w-100 shadow">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i>SIMPAN & UPDATE DATA
+                    </button>
+                    <button type="button" onclick="resetForm()" class="btn btn-light w-100 mt-2 btn-sm">Batal / Input Baru</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0"><i class="bi bi-collection-play-fill text-danger"></i> Kendaraan Dalam Service</h5>
+                    <button onclick="muatData()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr style="font-size: 0.8rem;">
+                                <th>KENDARAAN</th>
+                                <th>STATUS</th>
+                                <th class="text-center">PROGRES</th>
+                                <th class="text-center">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelKendaraan" style="font-size: 0.9rem;"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let listTugas = [];
+
+    // 1. Fungsi Mengirim Data
+    function kirimData() {
+    // 1. Ambil No Polisi dan BERSIHKAN total
+    const noPolInput = document.getElementById('no_polisi').value;
+    // Gunakan regex untuk hapus semua jenis spasi dan paksa huruf besar
+    const noPolClean = noPolInput.toUpperCase().replace(/\s+/g, '').trim();
+
+    if (!noPolClean || noPolClean === "") {
+        alert("⚠️ Nomor Polisi wajib diisi agar data tidak berantakan!");
+        return;
+    }
+
+    // 2. Ambil nilai dari elemen checklist/otomatisasi
+    const nilaiPersen = document.getElementById('persen').value;
+    const nilaiRincian = document.getElementById('rincian').value;
+    const nilaiStatus = document.getElementById('status').value;
+
+    const formData = new FormData();
+    formData.append('no_polisi', noPolClean); // Kunci utama untuk Edit/Tambah
+    formData.append('nama_customer', document.getElementById('nama_customer').value);
+    formData.append('tipe_motor', document.getElementById('tipe_motor').value);
+    formData.append('mekanik', document.getElementById('mekanik').value);
+    formData.append('estimasi', document.getElementById('estimasi').value);
+    formData.append('persen', nilaiPersen);
+    formData.append('status', nilaiStatus);
+    formData.append('rincian', nilaiRincian);
+
+    // 3. Kirim ke Flask
+    fetch('/update-progres', { 
+        method: 'POST', 
+        body: formData 
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Gagal terhubung ke server");
+        return response.json();
+    })
+    .then(data => {
+        if(data.success) {
+            alert("✅ " + data.message);
+            
+            // 4. RESET FORM DAN CHECKLIST (Penting agar array listTugas kosong kembali)
+            resetForm(); 
+            
+            // 5. REFRESH TABEL
+            muatData(); 
+        } else {
+            alert("❌ Gagal: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Terjadi kesalahan! Pastikan XAMPP dan Flask aktif.");
+    });
+}
+
+    // 2. Logika Checklist & Auto-Persen
+    function tambahTugas() {
+        const input = document.getElementById('inputTugas');
+        if (input.value.trim() === "") return;
+        listTugas.push({ teks: input.value, selesai: false });
+        input.value = "";
+        renderChecklist();
+    }
+
+    function renderChecklist() {
+        const area = document.getElementById('checklistArea');
+        if (listTugas.length === 0) {
+            area.innerHTML = '<p class="text-muted small mb-0 text-center">Belum ada daftar tugas.</p>';
+            updateOtomatis(0);
+            return;
+        }
+
+        let html = "";
+        let selesaiCount = 0;
+        listTugas.forEach((t, i) => {
+            if (t.selesai) selesaiCount++;
+            html += `
+                <div class="d-flex justify-content-between align-items-center mb-2 bg-white p-2 rounded shadow-sm border-start border-3 ${t.selesai ? 'border-success' : 'border-warning'}">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" ${t.selesai ? 'checked' : ''} onchange="toggleTugas(${i})">
+                        <label class="form-check-label ${t.selesai ? 'text-decoration-line-through text-muted' : ''}">${t.teks}</label>
+                    </div>
+                    <i class="bi bi-trash text-muted" style="cursor:pointer" onclick="hapusTugas(${i})"></i>
+                </div>`;
+        });
+        area.innerHTML = html;
+        const persen = Math.round((selesaiCount / listTugas.length) * 100);
+        updateOtomatis(persen);
+    }
+
+    function toggleTugas(i) { listTugas[i].selesai = !listTugas[i].selesai; renderChecklist(); }
+    function hapusTugas(i) { listTugas.splice(i, 1); renderChecklist(); }
+
+    function updateOtomatis(p) {
+        document.getElementById('persen').value = p;
+        document.getElementById('outPersen').innerText = p;
+        document.getElementById('rincian').value = listTugas.map(t => `${t.teks}${t.selesai ? ' (Selesai)' : ' (Proses)'}`).join(', ');
+    }
+
+    // Ganti fungsi muatData lama dengan ini
+function muatData() {
+    // Pastikan route ini ada di app.py Anda
+    fetch('/get-semua-kendaraan') 
+    .then(r => {
+        if (!r.ok) throw new Error("Route tidak ditemukan (404)");
+        return r.json();
+    })
+    .then(data => {
+        let html = "";
+        data.forEach(k => {
+            const isDone = k.persen === 100;
+            // Gunakan k.no_polisi sesuai nama kolom di database Anda
+            const platNomor = k.no_polisi; 
+
+            html += `
+            <tr class="${isDone ? 'table-success' : ''}">
+                <td>
+                    <div class="badge-plat mb-1">${platNomor}</div>
+                    <div class="small fw-bold">${k.nama_customer || k.nama}</div>
+                </td>
+                <td>
+                    <span class="badge rounded-pill ${isDone ? 'bg-success' : 'bg-light text-danger border-danger'} border">
+                        ${isDone ? 'SIAP AMBIL' : k.status}
+                    </span>
+                </td>
+                <td class="text-center">${k.persen}%</td>
+                <td class="text-center">
+                    ${isDone ? 
+                        `<button class="btn btn-sm btn-success w-100" onclick="hapusData('${platNomor}', true)">
+                            <i class="bi bi-check-circle"></i> SELESAI
+                        </button>` 
+                        : 
+                        `<div class="btn-group w-100">
+                            <button class="btn btn-sm btn-dark" onclick='isiForm(${JSON.stringify(k)})'>
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="hapusData('${platNomor}', false)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>`
+                    }
+                </td>
+            </tr>`;
+        });
+        document.getElementById('tabelKendaraan').innerHTML = html;
+    })
+    .catch(err => console.error("Gagal muat data:", err));
+}
+
+// Tambahkan fungsi hapusData baru
+function hapusData(noPolisi, isDone = false) {
+    // 1. Tentukan pesan tanya berdasarkan status
+    const pesanKonfirmasi = isDone 
+        ? `Konfirmasi: Kendaraan ${noPolisi} sudah selesai servis dan siap diserahkan ke pelanggan?` 
+        : `Apakah Anda yakin ingin menghapus data kendaraan ${noPolisi}?`;
+
+    // 2. Jalankan konfirmasi
+    if (confirm(pesanKonfirmasi)) {
+        fetch(`/hapus-kendaraan/${noPolisi}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // 3. Tampilkan pesan sukses yang berbeda
+                if (isDone) {
+                    alert(`🎉 Mantap! Tugas untuk ${noPolisi} telah selesai dikerjakan.`);
+                } else {
+                    alert(`🗑️ Data kendaraan ${noPolisi} berhasil dihapus.`);
+                }
+                muatData(); 
+                resetForm(); 
+            }
+        });
+    }
+}
+    function updateOtomatis(p) {
+    const btnSimpan = document.querySelector('button[onclick="kirimData()"]');
+    const statusSelect = document.getElementById('status'); // Tambahan untuk akses dropdown status
+    
+    document.getElementById('persen').value = p;
+    document.getElementById('outPersen').innerText = p;
+    
+    // LOGIKA STATUS OTOMATIS (Tambahan tanpa mengurangi kode asli)
+    if (p === 0) {
+        statusSelect.value = "Antre";
+    } else if (p > 0 && p < 100) {
+        statusSelect.value = "Sedang Dikerjakan";
+    } else if (p === 100) {
+        statusSelect.value = "Selesai / Cuci Unit";
+    }
+    
+    if (p === 100) {
+        btnSimpan.innerHTML = '<i class="bi bi-check-all me-2"></i>SELESAIKAN & UPDATE';
+        btnSimpan.classList.replace('btn-danger', 'btn-success');
+    } else {
+        btnSimpan.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i>SIMPAN & UPDATE DATA';
+        btnSimpan.classList.replace('btn-success', 'btn-danger');
+    }
+    
+    document.getElementById('rincian').value = listTugas.map(t => `${t.teks}${t.selesai ? ' (Selesai)' : ' (Proses)'}`).join(', ');
+}
+    // 4. Isi Form saat klik Edit
+    function isiForm(data) {
+    // 1. Ambil data asli (tanpa menghapus logika lama)
+    // Saya tambahkan fallback (||) agar jika nama field di DB beda, tetap terbaca
+    const platNomor = data.no_polisi || data.no_pol;
+    const namaCust = data.nama || data.nama_customer;
+    const tipeMot = data.tipe || data.tipe_motor;
+
+    document.getElementById('no_polisi').value = platNomor;
+    document.getElementById('nama_customer').value = namaCust;
+    document.getElementById('tipe_motor').value = tipeMot;
+    document.getElementById('mekanik').value = data.mekanik;
+    document.getElementById('estimasi').value = data.estimasi;
+    document.getElementById('status').value = data.status;
+    
+    // TAMBAHAN: Update angka persen di layar saat mode edit dibuka
+    if (data.persen !== undefined) {
+        document.getElementById('persen').value = data.persen;
+        document.getElementById('outPersen').innerText = data.persen;
+    }
+    
+    if (data.rincian) {
+        listTugas = data.rincian.split(', ').map(item => ({
+            teks: item.replace(' (Selesai)', '').replace(' (Proses)', ''),
+            selesai: item.includes('(Selesai)')
+        }));
+        renderChecklist();
+    } else {
+        listTugas = [];
+        renderChecklist();
+    }
+
+    // TAMBAHAN: Jalankan updateOtomatis agar tombol SIMPAN berubah warna sesuai progres data yang dimuat
+    const progresSekarang = parseInt(data.persen || 0);
+    updateOtomatis(progresSekarang);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+    function resetForm() {
+    document.getElementById('adminForm').reset();
+    listTugas = []; // Kosongkan array checklist
+    renderChecklist(); // Gambar ulang kotak checklist jadi kosong
+    document.getElementById('outPersen').innerText = "0";
+}
+
+    muatData();
+</script>
+</body>
+</html>
